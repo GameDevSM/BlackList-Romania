@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlackList România – Racing (MVP)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-neutral-950 text-neutral-100 min-h-screen">
+  <!-- Age Verification Modal -->
+  <div id="ageModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-neutral-900 text-neutral-100 p-8 rounded-2xl max-w-sm text-center space-y-4 shadow-lg">
+      <h2 class="text-2xl font-bold text-amber-400">Verificare vârstă</h2>
+      <p>Ai peste 18 ani?</p>
+      <div class="flex justify-center gap-4 mt-4">
+        <button id="btnYes" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 font-semibold">Da</button>
+        <button id="btnNo" class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 font-semibold">Nu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto p-4 space-y-6">
+    <header class="flex items-center justify-between">
+      <h1 class="text-3xl font-extrabold tracking-tight">BLACKLIST <span class="text-amber-400">ROMÂNIA</span></h1>
+      <div class="flex items-center gap-2">
+        <button id="btnAdmin" class="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-sm">Admin</button>
+      </div>
+    </header>
+
+    <section id="statusBar" class="text-sm text-neutral-300"></section>
+
+    <!-- FORM INSCRIERE -->
+    <section class="bg-neutral-900/60 rounded-2xl p-4 shadow">
+      <h2 class="text-xl font-bold mb-3">Înscriere pilot</h2>
+      <div class="grid md:grid-cols-3 gap-3">
+        <input id="nickname" placeholder="Nickname" class="px-3 py-2 rounded-xl bg-neutral-800" />
+        <input id="car" placeholder="Mașină (ex. BMW E46)" class="px-3 py-2 rounded-xl bg-neutral-800" />
+        <input id="photoUrl" placeholder="Poză mașină (URL)" class="px-3 py-2 rounded-xl bg-neutral-800" />
+      </div>
+      <div class="mt-3 flex gap-3">
+        <button id="btnRegister" class="px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-semibold">Mă înscriu</button>
+      </div>
+      <p id="registerMsg" class="mt-2 text-sm"></p>
+    </section>
+
+    <!-- ACCES PRIVAT -->
+    <section id="privateGate" class="hidden bg-neutral-900/60 rounded-2xl p-4 shadow">
+      <h2 class="text-xl font-bold mb-3">Acces privat</h2>
+      <div class="flex gap-3">
+        <input id="accessCode" placeholder="Cod acces" class="px-3 py-2 rounded-xl bg-neutral-800" />
+        <button id="btnUseCode" class="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold">Intră</button>
+      </div>
+      <p class="text-xs text-neutral-400 mt-2">Dacă ești pilot aprobat, poți cere cod din secțiunea „Cere cod” de mai jos.</p>
+    </section>
+
+    <!-- CERE COD ACCES -->
+    <section class="bg-neutral-900/60 rounded-2xl p-4 shadow">
+      <h2 class="text-xl font-bold mb-3">Cere cod de acces (după aprobare)</h2>
+      <div class="flex gap-3">
+        <input id="nicknameForCode" placeholder="Nickname" class="px-3 py-2 rounded-xl bg-neutral-800" />
+        <button id="btnRequestCode" class="px-4 py-2 rounded-2xl bg-sky-500 hover:bg-sky-400 text-black font-semibold">Generează</button>
+      </div>
+      <p id="codeMsg" class="mt-2 text-sm"></p>
+    </section>
+
+    <!-- LISTA BLACKLIST -->
+    <section class="bg-neutral-900/60 rounded-2xl p-4 shadow">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xl font-bold">Clasament BlackList</h2>
+        <button id="btnRefresh" class="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-sm">Reîmprospătează</button>
+      </div>
+      <div id="list" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ADMIN PANEL -->
+    <section id="adminPanel" class="hidden bg-neutral-900/60 rounded-2xl p-4 shadow">
+      <h2 class="text-xl font-bold mb-3">Admin</h2>
+      <div id="adminLogin" class="flex gap-3">
+        <input id="adminPass" type="password" placeholder="Parola admin" class="px-3 py-2 rounded-xl bg-neutral-800" />
+        <button id="btnAdminLogin" class="px-4 py-2 rounded-2xl bg-rose-500 hover:bg-rose-400 text-black font-semibold">Login</button>
+      </div>
+      <div id="adminArea" class="hidden space-y-4">
+        <div class="flex items-center gap-3">
+          <button id="btnTogglePrivacy" class="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-sm">Comută Public/Privat</button>
+          <span id="privacyState" class="text-sm text-neutral-300"></span>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Aplicații în așteptare</h3>
+          <div id="pending" class="grid md:grid-cols-2 gap-3"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Reordonare BlackList</h3>
+          <p class="text-xs text-neutral-400 mb-2">Introdu ID-urile aprobate separate prin virgulă în ordinea dorită (#1 primul):</p>
+          <input id="orderedIds" placeholder="ex: A1B2C3D4,E5F6G7H8,..." class="w-full px-3 py-2 rounded-xl bg-neutral-800" />
+          <button id="btnReorder" class="mt-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-sm">Aplică ordinea</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ===========================
+    // Age Verification
+    // ===========================
+    document.addEventListener("DOMContentLoaded", () => {
+      const ageModal = document.getElementById("ageModal");
+      const btnYes = document.getElementById("btnYes");
+      const btnNo = document.getElementById("btnNo");
+
+      // Blocăm scrollul până la verificare
+      document.body.style.overflow = "hidden";
+
+      btnYes.addEventListener("click", () => {
+        ageModal.style.display = "none";
+        document.body.style.overflow = "auto"; // deblochează scrollul
+      });
+
+      btnNo.addEventListener("click", () => {
+        alert("Nu ai voie să accesezi acest site.");
+        window.location.href = "https://www.google.com"; // redirecționează
+      });
+    });
+
+    // ===========================
+    // BlackList Site Script
+    // ===========================
+    const API_BASE = location.origin; // backend și frontend merg pe același domeniu
+    const els = {
+      statusBar: document.getElementById('statusBar'),
+      list: document.getElementById('list'),
+      btnRefresh: document.getElementById('btnRefresh'),
+      nickname: document.getElementById('nickname'),
+      car: document.getElementById('car'),
+      photoUrl: document.getElementById('photoUrl'),
+      btnRegister: document.getElementById('btnRegister'),
+      registerMsg: document.getElementById('registerMsg'),
+      privateGate: document.getElementById('privateGate'),
+      accessCode: document.getElementById('accessCode'),
+      btnUseCode: document.getElementById('btnUseCode'),
+      nicknameForCode: document.getElementById('nicknameForCode'),
+      btnRequestCode: document.getElementById('btnRequestCode'),
+      codeMsg: document.getElementById('codeMsg'),
+      adminPanel: document.getElementById('adminPanel'),
+      btnAdmin: document.getElementById('btnAdmin'),
+      adminLogin: document.getElementById('adminLogin'),
+      adminPass: document.getElementById('adminPass'),
+      btnAdminLogin: document.getElementById('btnAdminLogin'),
+      adminArea: document.getElementById('adminArea'),
+      pending: document.getElementById('pending'),
+      orderedIds: document.getElementById('orderedIds'),
+      btnReorder: document.getElementById('btnReorder'),
+      btnTogglePrivacy: document.getElementById('btnTogglePrivacy'),
+      privacyState: document.getElementById('privacyState')
+    };
+
+    let adminToken = localStorage.getItem('adminToken') || '';
+    let accessCode = localStorage.getItem('accessCode') || '';
+
+    function cardPilot(p) {
+      return `
+        <div class="rounded-2xl overflow-hidden bg-neutral-800/70 border border-neutral-700">
+          <div class="p-3 flex items-center justify-between">
+            <span class="text-amber-400 font-bold text-lg">#${p.rank}</span>
+            <span class="text-xs text-neutral-300">ID: ${p.id}</span>
+          </div>
+          ${p.photoUrl ? `<img src="${p.photoUrl}" alt="car" class="w-full h-40 object-cover">` : ''}
+          <div class="p-3">
+            <div class="font-semibold">${p.nickname}</div>
+            <div class="text-sm text-neutral-300">${p.car}</div>
+          </div>
+        </div>`;
+    }
+
+    async function loadConfig() {
+      const res = await fetch(`${API_BASE}/api/config`);
+      const data = await res.json();
+      els.statusBar.textContent = data.publicMode
+        ? `Mod PUBLIC • Înscrieri: ${data.totalPilots}/${data.minPublicSignups} (după prag, lista poate deveni privată)`
+        : `Mod PRIVAT • Acces numai cu cod`;
+      els.privateGate.classList.toggle('hidden', data.publicMode);
+      els.privacyState.textContent = data.publicMode ? 'Public' : 'Privat';
+    }
+
+    async function loadList() {
+      const headers = {};
+      if (els.privateGate.classList.contains('hidden') === false) {
+        if (accessCode) headers['X-Access-Code'] = accessCode;
+      }
+      const res = await fetch(`${API_BASE}/api/list`, { headers });
+      const data = await res.json();
+      if (data.error) {
+        els.list.innerHTML = `<div class='text-sm text-red-400'>${data.error}</div>`;
+        return;
+      }
+      els.list.innerHTML = data.pilots.map(cardPilot).join('') || '<div class="text-neutral-400">Nicio aprobare încă.</div>';
+    }
+
+    els.btnRefresh.addEventListener('click', () => { loadConfig(); loadList(); });
+
+    els.btnRegister.addEventListener('click', async () => {
+      const body = { nickname: els.nickname.value.trim(), car: els.car.value.trim(), photoUrl: els.photoUrl.value.trim() };
+      const res = await fetch(`${API_BASE}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      els.registerMsg.textContent = data.ok ? `Înscriere trimisă. ID: ${data.id}. Așteaptă aprobare.` : (data.error || 'Eroare');
+      if (data.ok) { els.nickname.value = els.car.value = els.photoUrl.value = ''; }
+      loadConfig();
+    });
+
+    els.btnUseCode.addEventListener('click', async () => {
+      accessCode = els.accessCode.value.trim();
+      if (!accessCode) return;
+      localStorage.setItem('accessCode', accessCode);
+      loadList();
+    });
+
+    els.btnRequestCode.addEventListener('click', async () => {
+      const body = { nickname: els.nicknameForCode.value.trim() };
+      const res = await fetch(`${API_BASE}/api/access/request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.ok) {
+        els.codeMsg.textContent = `Codul tău: ${data.accessCode}`;
+        accessCode = data.accessCode; localStorage.setItem('accessCode', accessCode);
+      } else {
+        els.codeMsg.textContent = data.error || 'Eroare';
+      }
+    });
+
+    els.btnAdmin.addEventListener('click', () => {
+      els.adminPanel.classList.remove('hidden');
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+
+    els.btnAdminLogin.addEventListener('click', async () => {
+      const res = await fetch(`${API_BASE}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: els.adminPass.value }) });
+      const data = await res.json();
+      if (data.ok) {
+        adminToken = data.token; localStorage.setItem('adminToken', adminToken);
+        els.adminLogin.classList.add('hidden');
+        els.adminArea.classList.remove('hidden');
+        loadApplicants();
+      } else {
+        alert(data.error || 'Eroare login');
+      }
+    });
+
+    async function loadApplicants() {
+      const res = await fetch(`${API_BASE}/api/admin/applicants`, { headers: { 'X-Admin-Token': adminToken } });
+      const data = await res.json();
+      if (data.applicants) {
+        els.pending.innerHTML = data.applicants.map(a => `
+          <div class='p-3 rounded-xl bg-neutral-800 border border-neutral-700'>
+            <div class='text-xs text-neutral-400'>ID: ${a.id}</div>
+            <div class='font-semibold'>${a.nickname}</div>
+            <div class='text-sm'>${a.car}</div>
+            ${a.photoUrl ? `<img src='${a.photoUrl}' class='mt-2 w-full h-32 object-cover rounded-lg'/>` : ''}
+            <div class='mt-2 flex gap-2'>
+              <button data-id='${a.id}' data-approve='1' class='px-3 py-1 rounded-lg bg-emerald-500 text-black'>Aprobă</button>
+              <button data-id='${a.id}' data-approve='0' class='px-3 py-1 rounded-lg bg-rose-500 text-black'>Respinge</button>
+            </div>
+          </div>
+        `).join('');
+        els.pending.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const approve = btn.getAttribute('data-approve') === '1';
+            await fetch(`${API_BASE}/api/admin/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken }, body: JSON.stringify({ id, approve }) });
+            loadApplicants();
+            loadList();
+          });
+        });
+      }
+    }
+
+    els.btnReorder.addEventListener('click', async () => {
+      const ids = els.orderedIds.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (!ids.length) return;
+      const res = await fetch(`${API_BASE}/api/admin/reorder`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken }, body: JSON.stringify({ orderedIds: ids }) });
+      const data = await res.json();
+      if (data.ok) { loadList(); alert('Ordine aplicată'); }
+    });
+
+    els.btnTogglePrivacy.addEventListener('click', async () => {
+      const res = await fetch(`${API_BASE}/api/admin/toggle-privacy`, { method: 'POST', headers: { 'X-Admin-Token': adminToken } });
+      const data = await res.json();
+      els.privacyState.textContent = data.publicMode ? 'Public' : 'Privat';
+      loadConfig();
+    });
+
+    // Init
+    loadConfig();
+    loadList();
+  </script>
+</body>
+</html>
